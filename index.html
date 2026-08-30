@@ -137,10 +137,8 @@
     .add-details {
       color: #ffffff;
       font-size: 13px;
-      cursor: pointer;
-      opacity: 0.7;
+      opacity: 0.5;
     }
-    .add-details:hover { opacity: 1; }
 
     .status-line {
       font-size: 12px;
@@ -258,8 +256,6 @@
 
     .results-area::-webkit-scrollbar { width: 6px; }
     .results-area::-webkit-scrollbar-thumb { background: #333; border-radius: 3px; }
-
-    #dbFile { display: none; }
   </style>
 </head>
 <body>
@@ -291,8 +287,8 @@
         </button>
       </div>
       <div class="bottom-meta">
-        <div class="add-details" id="loadDbBtn">+ db.txt laden</div>
-        <div class="status-line" id="statusLine">Ready</div>
+        <div class="add-details">db.txt</div>
+        <div class="status-line" id="statusLine">Lade db.txt...</div>
       </div>
     </div>
 
@@ -305,7 +301,6 @@
     </div>
   </div>
 
-  <input type="file" id="dbFile" accept=".txt,text/plain">
   <div class="toast" id="toast"></div>
 
   <script>
@@ -315,11 +310,9 @@
     function detectType(value) {
       const v = value.trim();
       if (!v) return "Empty";
-      if (/^((25[0-5]|2[0-4]\d|[01]?\d\d?)\.){3}(25[0-5]|2[0-4]\d|[01]?\d\d?)$/.test(v)) return "IP Address";
       if (/^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/.test(v)) return "Email";
       if (/^\+?[\d\s\-().]{8,20}$/.test(v) && v.replace(/\D/g, "").length >= 7) return "Phone";
       if (/^[a-zA-ZÀ-ÿ\s\-'.]{2,60}$/.test(v)) return "Name";
-      if (/^@?[a-zA-Z0-9_\.]{2,32}$/.test(v)) return "Username";
       return "Keyword";
     }
 
@@ -330,8 +323,6 @@
     const resultsTitle = document.getElementById("resultsTitle");
     const closeResults = document.getElementById("closeResults");
     const searchBtn = document.getElementById("searchBtn");
-    const loadDbBtn = document.getElementById("loadDbBtn");
-    const dbFile = document.getElementById("dbFile");
     const toast = document.getElementById("toast");
 
     function showToast(msg) {
@@ -345,36 +336,44 @@
       currentDetectedType = detectType(val);
       const dbInfo = database.length > 0 ? ` · ${database.length} Einträge` : "";
       if (!val.trim()) {
-        statusLine.innerHTML = `Ready${dbInfo}`;
+        statusLine.innerHTML = database.length > 0 ? `Ready${dbInfo}` : "db.txt nicht gefunden";
       } else {
         statusLine.innerHTML = `Detected: ${currentDetectedType}${dbInfo}`;
       }
     }
 
-    queryInput.addEventListener("input", updateStatus);
-    queryInput.addEventListener("keydown", e => {
-      if (e.key === "Enter") {
-        e.preventDefault();
-        performLookup();
-      }
-    });
-
-    searchBtn.addEventListener("click", performLookup);
-    loadDbBtn.addEventListener("click", () => dbFile.click());
-
-    dbFile.addEventListener("change", e => {
-      const file = e.target.files[0];
-      if (!file) return;
-
-      const reader = new FileReader();
-      reader.onload = ev => {
-        database = parseDbTxt(ev.target.result);
+    // Automatisch db.txt laden (gleicher Ordner)
+    async function loadDatabase() {
+      try {
+        const res = await fetch("db.txt");
+        if (!res.ok) throw new Error("nicht gefunden");
+        const text = await res.text();
+        database = parseDbTxt(text);
         updateStatus();
         showToast(`${database.length} Einträge geladen`);
-      };
-      reader.readAsText(file);
-      dbFile.value = "";
-    });
+      } catch (err) {
+        statusLine.innerHTML = "db.txt nicht gefunden";
+        console.log("db.txt konnte nicht geladen werden. Starte einen lokalen Server.");
+      }
+    }
+
+    function parseDbTxt(text) {
+      const entries = [];
+      const lines = text.split("\n").map(l => l.trim()).filter(l => l && !l.startsWith("#"));
+
+      for (const line of lines) {
+        const parts = line.split(",").map(p => p.trim());
+        if (parts.length >= 4) {
+          entries.push({
+            name: parts[0],
+            email: parts[1],
+            phone: parts[2],
+            adresse: parts.slice(3).join(", ")
+          });
+        }
+      }
+      return entries;
+    }
 
     function normalize(str) {
       return str.toLowerCase().trim().replace(/\s+/g, " ");
@@ -388,7 +387,7 @@
       }
 
       if (database.length === 0) {
-        showToast("Zuerst db.txt laden");
+        showToast("db.txt nicht geladen");
         return;
       }
 
@@ -406,7 +405,7 @@
         matches.forEach(entry => {
           const card = document.createElement("div");
           card.className = "result-card";
-          card.innerHTML = 
+          card.innerHTML =
             `<div class="label">Name:</div> ${entry.name}\n` +
             `<div class="label">Email:</div> ${entry.email}\n` +
             `<div class="label">Phone:</div> ${entry.phone}\n` +
@@ -418,40 +417,24 @@
       resultsArea.classList.add("active");
     }
 
-    closeResults.addEventListener("click", () => {
-      resultsArea.classList.remove("active");
+    queryInput.addEventListener("input", updateStatus);
+    queryInput.addEventListener("keydown", e => {
+      if (e.key === "Enter") {
+        e.preventDefault();
+        performLookup();
+      }
     });
 
-    // Parser für Format:
-    // Name,Email,Phone,Adresse
-    function parseDbTxt(text) {
-      const entries = [];
-      const lines = text.split("\n").map(l => l.trim()).filter(l => l && !l.startsWith("#"));
-
-      for (const line of lines) {
-        // split by comma, but keep address together (last parts)
-        const parts = line.split(",").map(p => p.trim());
-
-        if (parts.length >= 4) {
-          const name = parts[0];
-          const email = parts[1];
-          const phone = parts[2];
-          // everything after phone is the address
-          const adresse = parts.slice(3).join(", ");
-
-          entries.push({ name, email, phone, adresse });
-        }
-      }
-
-      return entries;
-    }
+    searchBtn.addEventListener("click", performLookup);
+    closeResults.addEventListener("click", () => resultsArea.classList.remove("active"));
 
     document.getElementById("modeBtn").addEventListener("click", () => showToast("Mode: Lite"));
     document.addEventListener("keydown", e => {
       if (e.key === "Escape") resultsArea.classList.remove("active");
     });
 
-    updateStatus();
+    // Beim Start automatisch laden
+    loadDatabase();
   </script>
 </body>
 </html>
