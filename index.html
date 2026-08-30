@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="de">
+<html lang="en">
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -26,20 +26,18 @@
 
     /* ===== BANNER ===== */
     .banner {
-      flex: 0 0 auto;
+      flex: 1;
       display: flex;
       align-items: center;
       justify-content: center;
       background: #000;
-      height: 220px;
-      min-height: 80px;
-      max-height: 220px;
-      transition: height 0.35s ease, opacity 0.35s ease, min-height 0.35s ease;
+      min-height: 0;
+      transition: flex 0.35s ease, opacity 0.35s ease, min-height 0.35s ease;
       overflow: hidden;
     }
 
     .banner.hidden {
-      height: 0;
+      flex: 0 0 0;
       min-height: 0;
       opacity: 0;
       pointer-events: none;
@@ -47,7 +45,7 @@
 
     .ascii-banner {
       font-family: 'Share Tech Mono', monospace;
-      font-size: clamp(7px, 1.6vw, 14px);
+      font-size: clamp(8px, 1.8vw, 15px);
       line-height: 1.15;
       color: #ffffff;
       white-space: pre;
@@ -62,27 +60,14 @@
       opacity: 0;
     }
 
-    /* ===== SCROLL AREA ===== */
-    .scroll-area {
-      flex: 1;
-      overflow-y: auto;
-      overflow-x: hidden;
-      display: flex;
-      flex-direction: column;
-    }
-
-    .scroll-area::-webkit-scrollbar { width: 6px; }
-    .scroll-area::-webkit-scrollbar-track { background: transparent; }
-    .scroll-area::-webkit-scrollbar-thumb { background: #333; border-radius: 3px; }
-
-    /* ===== BOTTOM / INPUT (sticky) ===== */
+    /* ===== BOTTOM SECTION (Input + Results) ===== */
     .bottom-section {
       flex-shrink: 0;
+      display: flex;
+      flex-direction: column;
       background: #0d0d12;
       border-top: 1px solid #1e1e28;
-      position: sticky;
-      bottom: 0;
-      z-index: 50;
+      max-height: 60vh;
     }
 
     .input-bar {
@@ -90,6 +75,7 @@
       display: flex;
       flex-direction: column;
       gap: 10px;
+      flex-shrink: 0;
     }
 
     .input-row {
@@ -137,7 +123,7 @@
     .mode-select:hover { background: #22222e; }
     .mode-select svg { width: 14px; height: 14px; stroke: currentColor; }
 
-    .upload-btn {
+    .search-btn {
       width: 40px;
       height: 40px;
       border-radius: 10px;
@@ -151,20 +137,20 @@
       flex-shrink: 0;
     }
 
-    .upload-btn:hover {
+    .search-btn:hover {
       background: #7c3aed;
       transform: translateY(-1px);
       box-shadow: 0 4px 12px #6d28d966;
     }
 
-    .upload-btn svg {
+    .search-btn svg {
       width: 18px;
       height: 18px;
       stroke: #fff;
       stroke-width: 2.2;
     }
 
-    .upload-btn.loading {
+    .search-btn.loading {
       opacity: 0.6;
       pointer-events: none;
     }
@@ -176,7 +162,7 @@
       padding: 0 2px;
     }
 
-    .add-details {
+    .source-label {
       color: #ffffff;
       font-size: 13px;
       opacity: 0.5;
@@ -189,29 +175,34 @@
       opacity: 0.8;
     }
 
-    /* ===== RESULTS ===== */
+    /* ===== RESULTS (below input) ===== */
     .results-area {
       display: none;
       flex-direction: column;
-      padding: 16px 20px 20px;
-      background: #0a0a0f;
       border-top: 1px solid #1a1a22;
-      min-height: 120px;
-      max-height: 55vh;
+      background: #0a0a0f;
+      max-height: 40vh;
       overflow-y: auto;
+      padding: 12px 20px 16px;
     }
 
-    .results-area.active { display: flex; }
+    .results-area.active {
+      display: flex;
+    }
 
     .results-area::-webkit-scrollbar { width: 6px; }
+    .results-area::-webkit-scrollbar-track { background: transparent; }
     .results-area::-webkit-scrollbar-thumb { background: #333; border-radius: 3px; }
 
     .results-header {
       display: flex;
       justify-content: space-between;
       align-items: center;
-      padding-bottom: 12px;
-      margin-bottom: 4px;
+      padding-bottom: 10px;
+      position: sticky;
+      top: 0;
+      background: #0a0a0f;
+      z-index: 5;
     }
 
     .results-header h2 {
@@ -257,9 +248,9 @@
     }
 
     .result-card .section-title {
-      font-size: 12px;
-      opacity: 0.5;
-      margin-bottom: 6px;
+      font-size: 11px;
+      opacity: 0.45;
+      margin-bottom: 8px;
       text-transform: uppercase;
       letter-spacing: 1px;
     }
@@ -310,7 +301,7 @@
 <body>
   <div class="app">
 
-    <!-- BANNER -->
+    <!-- BANNER (centered in remaining space) -->
     <div class="banner" id="banner">
       <pre class="ascii-banner">
    ██████╗ ███████╗██╗███╗   ██╗████████╗
@@ -322,9 +313,30 @@
       </pre>
     </div>
 
-    <!-- SCROLLABLE MIDDLE + RESULTS -->
-    <div class="scroll-area" id="scrollArea">
+    <!-- INPUT + RESULTS (always at bottom) -->
+    <div class="bottom-section">
 
+      <div class="input-bar">
+        <div class="input-row">
+          <input type="text" class="query-input" id="queryInput" placeholder="Name, Email, Phone, IP..." autocomplete="off" spellcheck="false">
+          <button class="mode-select" id="modeBtn">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 20h9"/><path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5z"/></svg>
+            <span>Lite</span>
+            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M6 9l6 6 6-6"/></svg>
+          </button>
+          <button class="search-btn" id="searchBtn" title="Search">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round">
+              <path d="M12 19V5M5 12l7-7 7 7"/>
+            </svg>
+          </button>
+        </div>
+        <div class="bottom-meta">
+          <div class="source-label">db.txt + ipinfo.io</div>
+          <div class="status-line" id="statusLine">Loading db.txt...</div>
+        </div>
+      </div>
+
+      <!-- Results appear UNDER the input -->
       <div class="results-area" id="resultsArea">
         <div class="results-header">
           <h2 id="resultsTitle">Results</h2>
@@ -333,29 +345,6 @@
         <div id="resultsContent"></div>
       </div>
 
-    </div>
-
-    <!-- INPUT BAR (always bottom) -->
-    <div class="bottom-section">
-      <div class="input-bar">
-        <div class="input-row">
-          <input type="text" class="query-input" id="queryInput" placeholder="Name, Email, Nummer, IP..." autocomplete="off" spellcheck="false">
-          <button class="mode-select" id="modeBtn">
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 20h9"/><path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5z"/></svg>
-            <span>Lite</span>
-            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M6 9l6 6 6-6"/></svg>
-          </button>
-          <button class="upload-btn" id="searchBtn" title="Suchen">
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round">
-              <path d="M12 19V5M5 12l7-7 7 7"/>
-            </svg>
-          </button>
-        </div>
-        <div class="bottom-meta">
-          <div class="add-details">db.txt + ipinfo.io</div>
-          <div class="status-line" id="statusLine">Lade db.txt...</div>
-        </div>
-      </div>
     </div>
 
   </div>
@@ -367,7 +356,6 @@
     let currentDetectedType = "Unknown";
 
     const banner = document.getElementById("banner");
-    const scrollArea = document.getElementById("scrollArea");
     const queryInput = document.getElementById("queryInput");
     const statusLine = document.getElementById("statusLine");
     const resultsArea = document.getElementById("resultsArea");
@@ -396,15 +384,14 @@
     function updateStatus() {
       const val = queryInput.value;
       currentDetectedType = detectType(val);
-      const dbInfo = database.length > 0 ? ` · ${database.length} Einträge` : "";
+      const dbInfo = database.length > 0 ? ` · ${database.length} entries` : "";
       if (!val.trim()) {
-        statusLine.innerHTML = database.length > 0 ? `Ready${dbInfo}` : "db.txt nicht gefunden";
+        statusLine.innerHTML = database.length > 0 ? `Ready${dbInfo}` : "db.txt not found";
       } else {
         statusLine.innerHTML = `Detected: ${currentDetectedType}${dbInfo}`;
       }
     }
 
-    // Banner ausblenden wenn Ergebnisse da sind / gescrollt wird
     function updateBannerVisibility() {
       if (resultsArea.classList.contains("active")) {
         banner.classList.add("hidden");
@@ -413,17 +400,16 @@
       }
     }
 
-    // ===== db.txt laden =====
     async function loadDatabase() {
       try {
         const res = await fetch("db.txt");
-        if (!res.ok) throw new Error("nicht gefunden");
+        if (!res.ok) throw new Error("not found");
         const text = await res.text();
         database = parseDbTxt(text);
         updateStatus();
-        showToast(`${database.length} Einträge geladen`);
+        showToast(`${database.length} entries loaded`);
       } catch (err) {
-        statusLine.innerHTML = "db.txt nicht gefunden";
+        statusLine.innerHTML = "db.txt not found";
       }
     }
 
@@ -437,7 +423,7 @@
             name: parts[0],
             email: parts[1],
             phone: parts[2],
-            adresse: parts.slice(3).join(", ")
+            address: parts.slice(3).join(", ")
           });
         }
       }
@@ -448,22 +434,20 @@
       return str.toLowerCase().trim().replace(/\s+/g, " ");
     }
 
-    // ===== IP Lookup (ipinfo.io) =====
     async function lookupIP(ip) {
       try {
         const res = await fetch(`https://ipinfo.io/${ip}/json`);
-        if (!res.ok) throw new Error("API Fehler");
+        if (!res.ok) throw new Error("API error");
         return await res.json();
       } catch (err) {
         return null;
       }
     }
 
-    // ===== Haupt-Suche =====
     async function performLookup() {
       const query = queryInput.value.trim();
       if (!query) {
-        showToast("Bitte etwas eingeben");
+        showToast("Please enter something");
         return;
       }
 
@@ -476,7 +460,7 @@
       const type = detectType(query);
       let hasResults = false;
 
-      // 1) IP Lookup
+      // IP Lookup via ipinfo.io
       if (type === "IP Address") {
         const ipData = await lookupIP(query);
         if (ipData) {
@@ -498,7 +482,7 @@
         }
       }
 
-      // 2) db.txt Suche
+      // db.txt search
       if (database.length > 0) {
         const nq = normalize(query);
         const matches = database.filter(entry => {
@@ -515,20 +499,19 @@
               `<div class="label">Name:</div> ${entry.name}\n` +
               `<div class="label">Email:</div> ${entry.email}\n` +
               `<div class="label">Phone:</div> ${entry.phone}\n` +
-              `<div class="label">Adresse:</div> ${entry.adresse}`;
+              `<div class="label">Address:</div> ${entry.address}`;
             resultsContent.appendChild(card);
           });
         }
       }
 
       if (!hasResults) {
-        resultsContent.innerHTML = `<div class="no-results">Nichts gefunden</div>`;
+        resultsContent.innerHTML = `<div class="no-results">No results found</div>`;
       }
 
       searchBtn.classList.remove("loading");
     }
 
-    // Events
     queryInput.addEventListener("input", updateStatus);
     queryInput.addEventListener("keydown", e => {
       if (e.key === "Enter") {
@@ -552,7 +535,6 @@
       }
     });
 
-    // Start
     loadDatabase();
   </script>
 </body>
