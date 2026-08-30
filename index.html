@@ -7,11 +7,7 @@
   <style>
     @import url('https://fonts.googleapis.com/css2?family=Share+Tech+Mono&family=Inter:wght@400;500;600&display=swap');
 
-    * {
-      margin: 0;
-      padding: 0;
-      box-sizing: border-box;
-    }
+    * { margin: 0; padding: 0; box-sizing: border-box; }
 
     body {
       background: #000;
@@ -23,16 +19,13 @@
       overflow: hidden;
     }
 
-    /* ===== BANNER / TOP AREA ===== */
     .banner {
       flex: 1;
       display: flex;
       align-items: center;
       justify-content: center;
       background: #000;
-      position: relative;
       min-height: 200px;
-      overflow: hidden;
     }
 
     .ascii-banner {
@@ -47,7 +40,6 @@
       text-shadow: 0 0 8px rgba(255,255,255,0.15);
     }
 
-    /* ===== BOTTOM SECTION (Input + Results) ===== */
     .bottom-section {
       flex-shrink: 0;
       display: flex;
@@ -90,9 +82,7 @@
       padding: 6px 4px;
     }
 
-    .query-input::placeholder {
-      color: #888888;
-    }
+    .query-input::placeholder { color: #888888; }
 
     .mode-select {
       display: flex;
@@ -105,18 +95,10 @@
       cursor: pointer;
       padding: 4px 8px;
       border-radius: 6px;
-      transition: background 0.2s;
     }
 
-    .mode-select:hover {
-      background: #22222e;
-    }
-
-    .mode-select svg {
-      width: 14px;
-      height: 14px;
-      stroke: currentColor;
-    }
+    .mode-select:hover { background: #22222e; }
+    .mode-select svg { width: 14px; height: 14px; stroke: currentColor; }
 
     .upload-btn {
       width: 40px;
@@ -156,13 +138,9 @@
       color: #ffffff;
       font-size: 13px;
       cursor: pointer;
-      transition: color 0.2s;
       opacity: 0.7;
     }
-
-    .add-details:hover {
-      opacity: 1;
-    }
+    .add-details:hover { opacity: 1; }
 
     .status-line {
       font-size: 12px;
@@ -171,11 +149,6 @@
       opacity: 0.8;
     }
 
-    .status-line .type {
-      color: #ffffff;
-    }
-
-    /* ===== RESULTS (unter der Eingabe) ===== */
     .results-area {
       display: none;
       flex-direction: column;
@@ -186,9 +159,7 @@
       background: #0a0a0f;
     }
 
-    .results-area.active {
-      display: flex;
-    }
+    .results-area.active { display: flex; }
 
     .results-header {
       display: flex;
@@ -220,13 +191,9 @@
       display: flex;
       align-items: center;
       justify-content: center;
-      transition: all 0.2s;
     }
 
-    .close-results:hover {
-      border-color: #ffffff;
-      color: #fff;
-    }
+    .close-results:hover { border-color: #ffffff; }
 
     .result-card {
       background: #111118;
@@ -236,7 +203,7 @@
       margin-bottom: 10px;
       font-family: 'Share Tech Mono', monospace;
       font-size: 13px;
-      line-height: 1.55;
+      line-height: 1.6;
       color: #ffffff;
       white-space: pre-wrap;
       word-break: break-word;
@@ -282,7 +249,6 @@
       pointer-events: none;
       transition: all 0.3s ease;
       z-index: 100;
-      box-shadow: 0 8px 24px rgba(0,0,0,0.5);
     }
 
     .toast.show {
@@ -290,57 +256,46 @@
       transform: translateX(-50%) translateY(0);
     }
 
-    .results-area::-webkit-scrollbar {
-      width: 6px;
-    }
-    .results-area::-webkit-scrollbar-track {
-      background: transparent;
-    }
-    .results-area::-webkit-scrollbar-thumb {
-      background: #333;
-      border-radius: 3px;
-    }
+    .results-area::-webkit-scrollbar { width: 6px; }
+    .results-area::-webkit-scrollbar-thumb { background: #333; border-radius: 3px; }
+
+    #dbFile { display: none; }
   </style>
 </head>
 <body>
 
-  <!-- ==================== ASCII BANNER ==================== -->
-  <div class="banner" id="banner">
+  <div class="banner">
     <pre class="ascii-banner">
- ▄▄▄· ▄▄▄·  ▐ ▄ ·▄▄▄▄       ▄▄▄   ▄▄▄· 
-▐█ ▄█▐█ ▀█ •█▌▐███▪ ██▪     ▀▄ █·▐█ ▀█ 
- ██▀·▄█▀▀█ ▐█▐▐▌▐█· ▐█▌▄█▀▄ ▐▀▀▄ ▄█▀▀█ 
-▐█▪·•▐█ ▪▐▌██▐█▌██. ██▐█▌.▐▌▐█•█▌▐█ ▪▐▌
-.▀    ▀  ▀ ▀▀ █▪▀▀▀▀▀• ▀█▄▀▪.▀  ▀ ▀  ▀ 
+   ██████╗ ███████╗██╗███╗   ██╗████████╗
+  ██╔═══██╗██╔════╝██║████╗  ██║╚══██╔══╝
+  ██║   ██║███████╗██║██╔██╗ ██║   ██║   
+  ██║   ██║╚════██║██║██║╚██╗██║   ██║   
+  ╚██████╔╝███████║██║██║ ╚████║   ██║   
+   ╚═════╝ ╚══════╝╚═╝╚═╝  ╚═══╝   ╚═╝   
     </pre>
   </div>
 
-  <!-- ==================== INPUT + RESULTS ==================== -->
   <div class="bottom-section">
-
     <div class="input-bar">
       <div class="input-row">
-        <input type="text" class="query-input" id="queryInput" placeholder="IP, Name, Email, Username..." autocomplete="off" spellcheck="false">
-        <button class="mode-select" id="modeBtn" title="Mode">
+        <input type="text" class="query-input" id="queryInput" placeholder="Name, Email, Nummer..." autocomplete="off" spellcheck="false">
+        <button class="mode-select" id="modeBtn">
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 20h9"/><path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5z"/></svg>
           <span>Lite</span>
           <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M6 9l6 6 6-6"/></svg>
         </button>
-        <button class="upload-btn" id="searchBtn" title="Search">
+        <button class="upload-btn" id="searchBtn" title="Suchen">
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round">
             <path d="M12 19V5M5 12l7-7 7 7"/>
           </svg>
         </button>
       </div>
       <div class="bottom-meta">
-        <div class="add-details" id="addDetails">+ Add more details</div>
-        <div class="status-line" id="statusLine">
-          <span>Ready</span>
-        </div>
+        <div class="add-details" id="loadDbBtn">+ db.txt laden</div>
+        <div class="status-line" id="statusLine">Ready</div>
       </div>
     </div>
 
-    <!-- Ergebnisse unter der Eingabe -->
     <div class="results-area" id="resultsArea">
       <div class="results-header">
         <h2 id="resultsTitle">Results</h2>
@@ -348,9 +303,9 @@
       </div>
       <div id="resultsContent"></div>
     </div>
-
   </div>
 
+  <input type="file" id="dbFile" accept=".txt,text/plain">
   <div class="toast" id="toast"></div>
 
   <script>
@@ -361,14 +316,11 @@
       const v = value.trim();
       if (!v) return "Empty";
       if (/^((25[0-5]|2[0-4]\d|[01]?\d\d?)\.){3}(25[0-5]|2[0-4]\d|[01]?\d\d?)$/.test(v)) return "IP Address";
-      if (/^([0-9a-fA-F]{1,4}:){7}[0-9a-fA-F]{1,4}$|^::([0-9a-fA-F]{1,4}:){0,6}[0-9a-fA-F]{1,4}$|^([0-9a-fA-F]{1,4}:){1,7}:$/.test(v)) return "IPv6 Address";
       if (/^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/.test(v)) return "Email";
-      if (/^\+?[\d\s\-().]{8,20}$/.test(v) && v.replace(/\D/g, "").length >= 7) return "Phone Number";
-      if (/^https?:\/\/[^\s]+$/i.test(v) || /^www\.[^\s]+$/i.test(v)) return "URL";
-      if (/^[a-zA-Z0-9]([a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?(\.[a-zA-Z]{2,})+$/.test(v)) return "Domain";
-      if (/^[a-zA-ZÀ-ÿ\s\-'.]{2,60}$/.test(v) && /[a-zA-ZÀ-ÿ]/.test(v)) return "Name";
+      if (/^\+?[\d\s\-().]{8,20}$/.test(v) && v.replace(/\D/g, "").length >= 7) return "Phone";
+      if (/^[a-zA-ZÀ-ÿ\s\-'.]{2,60}$/.test(v)) return "Name";
       if (/^@?[a-zA-Z0-9_\.]{2,32}$/.test(v)) return "Username";
-      return "Unknown / Keyword";
+      return "Keyword";
     }
 
     const queryInput = document.getElementById("queryInput");
@@ -378,35 +330,51 @@
     const resultsTitle = document.getElementById("resultsTitle");
     const closeResults = document.getElementById("closeResults");
     const searchBtn = document.getElementById("searchBtn");
+    const loadDbBtn = document.getElementById("loadDbBtn");
+    const dbFile = document.getElementById("dbFile");
     const toast = document.getElementById("toast");
 
-    function showToast(msg, duration = 2400) {
+    function showToast(msg) {
       toast.textContent = msg;
       toast.classList.add("show");
-      setTimeout(() => toast.classList.remove("show"), duration);
+      setTimeout(() => toast.classList.remove("show"), 2500);
     }
 
     function updateStatus() {
       const val = queryInput.value;
       currentDetectedType = detectType(val);
-
+      const dbInfo = database.length > 0 ? ` · ${database.length} Einträge` : "";
       if (!val.trim()) {
-        statusLine.innerHTML = `<span>Ready</span>`;
+        statusLine.innerHTML = `Ready${dbInfo}`;
       } else {
-        statusLine.innerHTML = `Detected: <span class="type">${currentDetectedType}</span>`;
+        statusLine.innerHTML = `Detected: ${currentDetectedType}${dbInfo}`;
       }
     }
 
     queryInput.addEventListener("input", updateStatus);
-    queryInput.addEventListener("keydown", (e) => {
+    queryInput.addEventListener("keydown", e => {
       if (e.key === "Enter") {
         e.preventDefault();
         performLookup();
       }
     });
 
-    queryInput.value = "kajetanbodnar26@gmail.com";
-    updateStatus();
+    searchBtn.addEventListener("click", performLookup);
+    loadDbBtn.addEventListener("click", () => dbFile.click());
+
+    dbFile.addEventListener("change", e => {
+      const file = e.target.files[0];
+      if (!file) return;
+
+      const reader = new FileReader();
+      reader.onload = ev => {
+        database = parseDbTxt(ev.target.result);
+        updateStatus();
+        showToast(`${database.length} Einträge geladen`);
+      };
+      reader.readAsText(file);
+      dbFile.value = "";
+    });
 
     function normalize(str) {
       return str.toLowerCase().trim().replace(/\s+/g, " ");
@@ -419,30 +387,30 @@
         return;
       }
 
+      if (database.length === 0) {
+        showToast("Zuerst db.txt laden");
+        return;
+      }
+
       const nq = normalize(query);
       const matches = database.filter(entry => {
-        const keyMatch = normalize(entry.key).includes(nq) || nq.includes(normalize(entry.key));
-        const dataMatch = Object.values(entry.data || {}).some(v =>
-          normalize(String(v)).includes(nq)
-        );
-        return keyMatch || dataMatch;
+        return Object.values(entry).some(v => normalize(String(v)).includes(nq));
       });
 
       resultsTitle.innerHTML = `"${query}" <span class="detected-badge">${currentDetectedType}</span>`;
       resultsContent.innerHTML = "";
 
       if (matches.length === 0) {
-        resultsContent.innerHTML = `<div class="no-results">Keine Einträge gefunden</div>`;
+        resultsContent.innerHTML = `<div class="no-results">Nichts gefunden</div>`;
       } else {
         matches.forEach(entry => {
           const card = document.createElement("div");
           card.className = "result-card";
-          let html = `<div class="label">Match:</div> ${entry.key}\n`;
-          html += `<div class="label">Type:</div> ${entry.type || currentDetectedType}\n\n`;
-          for (const [k, v] of Object.entries(entry.data || {})) {
-            html += `<div class="label">${k}:</div> ${v}\n`;
-          }
-          card.innerHTML = html;
+          card.innerHTML = 
+            `<div class="label">Name:</div> ${entry.name}\n` +
+            `<div class="label">Email:</div> ${entry.email}\n` +
+            `<div class="label">Phone:</div> ${entry.phone}\n` +
+            `<div class="label">Adresse:</div> ${entry.adresse}`;
           resultsContent.appendChild(card);
         });
       }
@@ -454,24 +422,36 @@
       resultsArea.classList.remove("active");
     });
 
-    // Blauer Knopf = Search (wie Enter)
-    searchBtn.addEventListener("click", () => {
-      performLookup();
-    });
+    // Parser für Format:
+    // Name,Email,Phone,Adresse
+    function parseDbTxt(text) {
+      const entries = [];
+      const lines = text.split("\n").map(l => l.trim()).filter(l => l && !l.startsWith("#"));
 
-    document.getElementById("addDetails").addEventListener("click", () => {
-      showToast("Add more details");
-    });
+      for (const line of lines) {
+        // split by comma, but keep address together (last parts)
+        const parts = line.split(",").map(p => p.trim());
 
-    document.getElementById("modeBtn").addEventListener("click", () => {
-      showToast("Mode: Lite");
-    });
+        if (parts.length >= 4) {
+          const name = parts[0];
+          const email = parts[1];
+          const phone = parts[2];
+          // everything after phone is the address
+          const adresse = parts.slice(3).join(", ");
 
-    document.addEventListener("keydown", (e) => {
-      if (e.key === "Escape") {
-        resultsArea.classList.remove("active");
+          entries.push({ name, email, phone, adresse });
+        }
       }
+
+      return entries;
+    }
+
+    document.getElementById("modeBtn").addEventListener("click", () => showToast("Mode: Lite"));
+    document.addEventListener("keydown", e => {
+      if (e.key === "Escape") resultsArea.classList.remove("active");
     });
+
+    updateStatus();
   </script>
 </body>
 </html>
