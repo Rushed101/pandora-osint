@@ -176,10 +176,6 @@
       color: #ffffff;
     }
 
-    .status-line .db-info {
-      color: #ffffff;
-    }
-
     /* ===== RESULTS (unter der Eingabe) ===== */
     .results-area {
       display: none;
@@ -272,10 +268,6 @@
       font-family: 'Inter', sans-serif;
     }
 
-    #dbFile {
-      display: none;
-    }
-
     .toast {
       position: fixed;
       top: 24px;
@@ -329,7 +321,7 @@
           <span>Lite</span>
           <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M6 9l6 6 6-6"/></svg>
         </button>
-        <button class="upload-btn" id="uploadBtn" title="Load db.txt">
+        <button class="upload-btn" id="searchBtn" title="Search">
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round">
             <path d="M12 19V5M5 12l7-7 7 7"/>
           </svg>
@@ -354,85 +346,10 @@
 
   </div>
 
-  <input type="file" id="dbFile" accept=".txt,text/plain">
   <div class="toast" id="toast"></div>
 
   <script>
-    let database = [
-      {
-        key: "kajetanbodnar26@gmail.com",
-        type: "email",
-        data: {
-          "Email": "kajetanbodnar26@gmail.com",
-          "Name": "Kajetan Bodnar",
-          "Username": "kajetanb",
-          "Location": "Poland / EU",
-          "Linked Accounts": "GitHub, Twitter (x.com)",
-          "Notes": "Example entry"
-        }
-      },
-      {
-        key: "kajetan bodnar",
-        type: "name",
-        data: {
-          "Full Name": "Kajetan Bodnar",
-          "Email": "kajetanbodnar26@gmail.com",
-          "Country": "Poland",
-          "Notes": "Demo name entry"
-        }
-      },
-      {
-        key: "8.8.8.8",
-        type: "ip",
-        data: {
-          "IP": "8.8.8.8",
-          "Provider": "Google Public DNS",
-          "Location": "United States",
-          "ASN": "AS15169 Google LLC",
-          "Type": "Anycast DNS"
-        }
-      },
-      {
-        key: "1.1.1.1",
-        type: "ip",
-        data: {
-          "IP": "1.1.1.1",
-          "Provider": "Cloudflare",
-          "Location": "Global Anycast",
-          "ASN": "AS13335 Cloudflare"
-        }
-      },
-      {
-        key: "john doe",
-        type: "name",
-        data: {
-          "Full Name": "John Doe",
-          "Email": "john.doe@example.com",
-          "Phone": "+1-555-0100",
-          "City": "New York"
-        }
-      },
-      {
-        key: "elon musk",
-        type: "name",
-        data: {
-          "Full Name": "Elon Musk",
-          "Known for": "xAI, Tesla, SpaceX, X",
-          "Accounts": "@elonmusk"
-        }
-      },
-      {
-        key: "192.168.1.1",
-        type: "ip",
-        data: {
-          "IP": "192.168.1.1",
-          "Type": "Private / Local Network",
-          "Common Use": "Default gateway"
-        }
-      }
-    ];
-
-    let dbLoadedFromFile = false;
+    let database = [];
     let currentDetectedType = "Unknown";
 
     function detectType(value) {
@@ -455,8 +372,7 @@
     const resultsContent = document.getElementById("resultsContent");
     const resultsTitle = document.getElementById("resultsTitle");
     const closeResults = document.getElementById("closeResults");
-    const uploadBtn = document.getElementById("uploadBtn");
-    const dbFile = document.getElementById("dbFile");
+    const searchBtn = document.getElementById("searchBtn");
     const toast = document.getElementById("toast");
 
     function showToast(msg, duration = 2400) {
@@ -468,14 +384,11 @@
     function updateStatus() {
       const val = queryInput.value;
       currentDetectedType = detectType(val);
-      const dbStatus = dbLoadedFromFile
-        ? `<span class="db-info">db.txt loaded (${database.length})</span>`
-        : `<span class="db-info">sample DB (${database.length})</span>`;
 
       if (!val.trim()) {
-        statusLine.innerHTML = `<span>Ready</span> · ${dbStatus}`;
+        statusLine.innerHTML = `<span>Ready</span>`;
       } else {
-        statusLine.innerHTML = `Detected: <span class="type">${currentDetectedType}</span> · ${dbStatus}`;
+        statusLine.innerHTML = `Detected: <span class="type">${currentDetectedType}</span>`;
       }
     }
 
@@ -514,7 +427,7 @@
       resultsContent.innerHTML = "";
 
       if (matches.length === 0) {
-        resultsContent.innerHTML = `<div class="no-results">Keine Einträge in der Datenbank gefunden</div>`;
+        resultsContent.innerHTML = `<div class="no-results">Keine Einträge gefunden</div>`;
       } else {
         matches.forEach(entry => {
           const card = document.createElement("div");
@@ -536,108 +449,17 @@
       resultsArea.classList.remove("active");
     });
 
-    uploadBtn.addEventListener("click", () => dbFile.click());
-
-    dbFile.addEventListener("change", (e) => {
-      const file = e.target.files[0];
-      if (!file) return;
-
-      const reader = new FileReader();
-      reader.onload = (ev) => {
-        try {
-          const text = ev.target.result;
-          const parsed = parseDbTxt(text);
-          if (parsed.length === 0) {
-            showToast("Keine gültigen Einträge gefunden");
-            return;
-          }
-          database = parsed;
-          dbLoadedFromFile = true;
-          updateStatus();
-          showToast(`${parsed.length} Einträge aus ${file.name} geladen`);
-        } catch (err) {
-          showToast("Fehler beim Laden der db.txt");
-        }
-      };
-      reader.readAsText(file);
-      dbFile.value = "";
+    // Blauer Knopf = Search (wie Enter)
+    searchBtn.addEventListener("click", () => {
+      performLookup();
     });
 
-    function parseDbTxt(text) {
-      const entries = [];
-      const blocks = text.split(/\n\s*\n|\n---+\n/).map(b => b.trim()).filter(Boolean);
-
-      for (const block of blocks) {
-        const lines = block.split("\n").map(l => l.trim()).filter(Boolean);
-        if (lines.length === 0) continue;
-
-        const data = {};
-        let key = null;
-        let type = "unknown";
-
-        for (const line of lines) {
-          const m = line.match(/^([^:]+):\s*(.+)$/);
-          if (m) {
-            const k = m[1].trim();
-            const v = m[2].trim();
-            data[k] = v;
-            const kl = k.toLowerCase();
-            if (["name", "full name", "fullname"].includes(kl) && !key) {
-              key = v; type = "name";
-            } else if (["email", "mail"].includes(kl) && !key) {
-              key = v; type = "email";
-            } else if (["ip", "ip address", "address"].includes(kl) && !key) {
-              key = v; type = "ip";
-            } else if (["username", "user", "handle"].includes(kl) && !key) {
-              key = v; type = "username";
-            }
-          } else if (line.includes("|")) {
-            const parts = line.split("|").map(p => p.trim());
-            if (parts.length >= 1) {
-              key = parts[0];
-              if (parts[1]) type = parts[1].toLowerCase();
-              for (let i = 2; i < parts.length; i++) {
-                const pv = parts[i].split(":");
-                if (pv.length >= 2) {
-                  data[pv[0].trim()] = pv.slice(1).join(":").trim();
-                } else {
-                  data[`field_${i}`] = parts[i];
-                }
-              }
-            }
-          } else {
-            if (!key) key = line;
-            data["Content"] = (data["Content"] ? data["Content"] + "\n" : "") + line;
-          }
-        }
-
-        if (key) {
-          entries.push({ key, type, data });
-        } else if (Object.keys(data).length) {
-          entries.push({ key: String(Object.values(data)[0]), type, data });
-        }
-      }
-
-      if (entries.length === 0) {
-        const lines = text.split("\n").map(l => l.trim()).filter(l => l && !l.startsWith("#"));
-        lines.forEach((line, idx) => {
-          entries.push({
-            key: line.slice(0, 80),
-            type: "text",
-            data: { "Line": line, "Index": String(idx + 1) }
-          });
-        });
-      }
-
-      return entries;
-    }
-
     document.getElementById("addDetails").addEventListener("click", () => {
-      showToast("Add more details – erweitere einfach die db.txt");
+      showToast("Add more details");
     });
 
     document.getElementById("modeBtn").addEventListener("click", () => {
-      showToast("Mode: Lite (nur lokale db.txt)");
+      showToast("Mode: Lite");
     });
 
     document.addEventListener("keydown", (e) => {
